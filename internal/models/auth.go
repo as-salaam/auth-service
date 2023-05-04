@@ -20,4 +20,4 @@ type Claims struct {
 var JWTKey = []byte("how do you think, what is it?")
 
 const AuthTokenCookieName = "X-Auth-Token"
-const AuthTokenCookieTTl = 10080
+const AuthTokenCookieTTl = 1
