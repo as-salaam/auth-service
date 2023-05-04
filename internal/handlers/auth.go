@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -51,6 +52,56 @@ func (h *Handler) Login(c *gin.Context) {
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
+
+	c.JSON(http.StatusOK, user)
+}
+
+type UserRegistrationData struct {
+	FirstName    string `json:"first_name" binding:"required"`
+	LastName     string `json:"last_name" binding:"required"`
+	Phone        string `json:"phone"`
+	Email        string `json:"email" binding:"required"`
+	Password     string `json:"password" binding:"required"`
+	Confirmation string `json:"confirmation" binding:"required"`
+}
+
+func (h *Handler) Register(c *gin.Context) {
+	var userData UserRegistrationData
+	if err := c.ShouldBindJSON(&userData); err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	var user models.User
+	if result := h.DB.Where("email = ?", userData.Email).First(&user); result.Error == nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
+			"message": "There is a user registered with such email already",
+		})
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userData.Password), 12)
+	if err != nil {
+		log.Print("generating password hash:", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": "Internal Server Error",
+		})
+		return
+	}
+
+	user.FirstName = userData.FirstName
+	user.LastName = userData.LastName
+	user.Phone = userData.Phone
+	user.Email = userData.Email
+	user.Password = string(hashedPassword)
+
+	if result := h.DB.Save(&user); result.Error != nil {
+		log.Println("inserting user data to DB:", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": "Internal Server Error",
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, user)
 }

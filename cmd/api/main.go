@@ -30,6 +30,7 @@ func main() {
 	router := gin.Default()
 
 	router.POST("/login", h.Login)
+	router.POST("/register", h.Register)
 
 	router.Use(middlewares.AuthMiddleware())
 
@@ -37,5 +38,5 @@ func main() {
 	router.POST("/refresh", h.Refresh)
 	router.POST("/logout", h.Logout)
 
-	log.Fatal("router running:", router.Run(fmt.Sprintf(":%d", Port)))
+	log.Fatal("router running:", router.Run(fmt.Sprintf(":%d", *Port)))
 }
