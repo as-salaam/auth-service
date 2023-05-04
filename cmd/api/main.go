@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/as-salaam/auth-service/internal/handlers"
+	"github.com/as-salaam/auth-service/internal/middlewares"
 	"github.com/gin-gonic/gin"
 	"log"
 )
@@ -29,6 +30,11 @@ func main() {
 	router := gin.Default()
 
 	router.POST("/login", h.Login)
+
+	router.Use(middlewares.AuthMiddleware())
+
+	router.GET("/me", h.Me)
+	router.POST("/refresh", h.Refresh)
 	router.POST("/logout", h.Logout)
 
 	log.Fatal("router running:", router.Run(fmt.Sprintf(":%d", Port)))
