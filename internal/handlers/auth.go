@@ -89,8 +89,7 @@ func (h *Handler) Login(c *gin.Context) {
 
 	expirationTime := time.Now().Add(models.AuthTokenCookieTTl * time.Minute)
 	claims := &models.Claims{
-		UserID:    user.ID,
-		UserEmail: user.Email,
+		UserID: user.ID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
@@ -123,7 +122,7 @@ func (h *Handler) Me(c *gin.Context) {
 	claims := claimsData.(*models.Claims)
 
 	var user models.User
-	if result := h.DB.Where("email = ?", claims.UserEmail).First(&user); result.Error != nil {
+	if result := h.DB.Where("id = ?", claims.UserID).First(&user); result.Error != nil {
 		http.SetCookie(c.Writer, &http.Cookie{
 			Name:     models.AuthTokenCookieName,
 			Expires:  time.Now(),

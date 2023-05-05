@@ -11,8 +11,7 @@ type Credentials struct {
 }
 
 type Claims struct {
-	UserID    uuid.UUID
-	UserEmail string
+	UserID uuid.UUID
 	jwt.RegisteredClaims
 }
 

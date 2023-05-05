@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/as-salaam/auth-service/internal/database"
 	"github.com/as-salaam/auth-service/internal/handlers"
 	"github.com/as-salaam/auth-service/internal/middlewares"
 	"github.com/gin-gonic/gin"
@@ -20,7 +21,7 @@ func main() {
 	Port := flag.Uint("listenport", 4000, "Which port to listen")
 	flag.Parse()
 
-	db, err := DBInit(*DBHost, *DBName, *DBUser, *DBPassword, *DBPort, *Timezone, *DBSSLMode)
+	db, err := database.DBInit(*DBHost, *DBName, *DBUser, *DBPassword, *DBPort, *Timezone, *DBSSLMode)
 	if err != nil {
 		log.Fatal("db connection:", err)
 	}
