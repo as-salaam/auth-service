@@ -22,6 +22,7 @@ func DBInit(host, name, user, password string, port uint, timezone string, ssl b
 
 	err = db.AutoMigrate(
 		&models.User{},
+		&models.Role{},
 	)
 	if err != nil {
 		return nil, err
