@@ -2,11 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"github.com/as-salaam/auth-service/internal/database"
-	"github.com/as-salaam/auth-service/internal/handlers"
-	"github.com/as-salaam/auth-service/internal/middlewares"
-	"github.com/gin-gonic/gin"
 	"log"
 )
 
@@ -18,7 +14,8 @@ func main() {
 	DBPort := flag.Uint("dbport", 5432, "Enter the port of DB")
 	Timezone := flag.String("dbtimezone", "Asia/Dushanbe", "Enter your timezone to connect to the DB")
 	DBSSLMode := flag.Bool("dbsslmode", false, "Turns on ssl mode while connecting to DB")
-	Port := flag.Uint("listenport", 4000, "Which port to listen")
+	HTTPPort := flag.Uint("httpport", 4000, "Which port to listen")
+	RPCPort := flag.Uint("rpcport", 4001, "Which port to listen")
 	flag.Parse()
 
 	db, err := database.DBInit(*DBHost, *DBName, *DBUser, *DBPassword, *DBPort, *Timezone, *DBSSLMode)
@@ -26,18 +23,15 @@ func main() {
 		log.Fatal("db connection:", err)
 	}
 
-	h := handlers.NewHandler(db)
+	go func() {
+		err = RunGRPC(*RPCPort, db)
+		if err != nil {
+			log.Fatalf("cannot run grpc server: %s", err)
+		}
+	}()
 
-	router := gin.Default()
-
-	router.POST("/register", h.Register)
-	router.POST("/login", h.Login)
-
-	router.Use(middlewares.AuthMiddleware())
-
-	router.GET("/me", h.Me)
-	router.POST("/refresh", h.Refresh)
-	router.POST("/logout", h.Logout)
-
-	log.Fatal("router running:", router.Run(fmt.Sprintf(":%d", *Port)))
+	err = RunHTTP(*HTTPPort, db)
+	if err != nil {
+		log.Fatalf("cannot run http server: %s", err)
+	}
 }
